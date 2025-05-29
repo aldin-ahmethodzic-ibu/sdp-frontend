@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
-    user_type: 'student'
+    user_type: 'student' // Default value
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,12 +25,22 @@ const Register = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
-      await register(formData);
-      navigate('/');
-    } catch (err) {
-      setError(err.message || 'Registration failed');
+      console.log('Sending registration request:', formData);
+      const response = await axios.post('http://localhost:8000/register', formData);
+      console.log('Registration response:', response.data);
+      
+      // Store the token if it's in the response
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      
+      // Redirect to login page
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration error:', error.response?.data || error.message);
+      setError(error.response?.data?.detail || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +130,7 @@ const Register = () => {
           </div>
 
           <div className="pt-4">
-            <Link to="/" className="form-link block">
+            <Link to="/login" className="form-link block">
               Already have an account? Sign in
             </Link>
           </div>

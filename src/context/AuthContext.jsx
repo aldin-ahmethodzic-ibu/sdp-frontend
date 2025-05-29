@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -13,82 +13,102 @@ const api = axios.create({
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      console.log('Token found, fetching user data...');
+      fetchUserData(token);
+    } else {
+      console.log('No token found');
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchUserData = async (token) => {
+    try {
+      console.log('Fetching user data...');
+      const response = await api.get('/users/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      console.log('User data received:', response.data);
+      setUser(response.data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      localStorage.removeItem('token');
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (username, password) => {
     try {
-      // Step 1: Get the token
-      const params = new URLSearchParams();
-      params.append('username', username);
-      params.append('password', password);
+      console.log('Attempting login...');
+      const formData = new URLSearchParams();
+      formData.append('username', username);
+      formData.append('password', password);
 
-      const tokenResponse = await api.post('/token', params, {
+      const response = await api.post('/token', formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
+        withCredentials: true
       });
-      
-      const { access_token } = tokenResponse.data;
-      
-      // Step 2: Get user data with the token
-      const userResponse = await api.get('/users/me', {
-        headers: { 
-          'Authorization': `Bearer ${access_token}`,
-        }
-      });
-      
-      // Only set token and user if both requests succeed
+
+      console.log('Login successful, token received');
+      const { access_token } = response.data;
       localStorage.setItem('token', access_token);
-      setToken(access_token);
-      setUser(userResponse.data);
       
-      return true;
+      // Set the default authorization header for future requests
+      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+      
+      await fetchUserData(access_token);
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
+      
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Response error:', error.response.data);
-        throw new Error(error.response.data.detail || 'Login failed');
+        if (error.response.status === 401) {
+          return { success: false, error: 'Invalid username or password' };
+        }
+        return { success: false, error: error.response.data.detail || 'Login failed' };
       } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Request error:', error.request);
-        throw new Error('No response from server. Please check if the backend is running.');
+        if (error.message.includes('CORS')) {
+          return { success: false, error: 'CORS error: Unable to connect to the server. Please check if the server is running and CORS is properly configured.' };
+        }
+        return { success: false, error: 'Network error: Unable to connect to the server' };
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error:', error.message);
-        throw new Error('Error setting up the request');
+        return { success: false, error: 'An unexpected error occurred' };
       }
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/register', userData);
-      return response.data;
+      await api.post('/users/', userData);
+      return { success: true };
     } catch (error) {
       console.error('Registration error:', error);
-      if (error.response) {
-        console.error('Response error:', error.response.data);
-        throw new Error(error.response.data.detail || 'Registration failed');
-      } else if (error.request) {
-        console.error('Request error:', error.request);
-        throw new Error('No response from server. Please check if the backend is running.');
-      } else {
-        console.error('Error:', error.message);
-        throw new Error('Error setting up the request');
+      if (error.response?.data?.detail) {
+        return { success: false, error: error.response.data.detail };
       }
+      return { success: false, error: 'Registration failed' };
     }
   };
 
   const logout = () => {
+    console.log('Logging out...');
     localStorage.removeItem('token');
-    setToken(null);
+    delete api.defaults.headers.common['Authorization'];
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

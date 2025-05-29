@@ -5,12 +5,14 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Chatbot from './pages/Chatbot'
 
-function App() {
+const App = () => {
+  console.log('App component rendering');
+  
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/chatbot"
@@ -20,10 +22,10 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   )
 }
 
