@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200;
+  }
+  
+  .input-field {
+    @apply appearance-none rounded-md relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm text-center transition-colors duration-200;
+  }
+
+  .form-container {
+    @apply max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md;
+  }
+
+  .form-title {
+    @apply text-center text-3xl font-extrabold text-gray-900 mb-8;
+  }
+
+  .form-group {
+    @apply space-y-4;
+  }
+
+  .form-link {
+    @apply text-sm text-center text-primary-600 hover:text-primary-500 transition-colors duration-200;
+  }
+
+  .error-message {
+    @apply text-red-500 text-sm text-center bg-red-50 p-4 rounded-md border border-red-100;
+  }
+
+  /* Chat specific styles */
+  .chat-container {
+    @apply bg-white rounded-lg shadow-md h-[calc(100vh-12rem)] flex flex-col;
+  }
+
+  .chat-messages {
+    @apply flex-1 overflow-y-auto p-4 space-y-4;
+  }
+
+  .chat-input-container {
+    @apply border-t border-gray-200 p-4 bg-white;
+  }
+
+  .chat-input-form {
+    @apply flex space-x-4;
+  }
+
+  .chat-input {
+    @apply flex-1 appearance-none rounded-md px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-left;
+  }
+
+  .loading-dots {
+    @apply flex space-x-2;
+  }
+
+  .loading-dot {
+    @apply w-2 h-2 bg-gray-400 rounded-full animate-bounce;
+  }
+} 
