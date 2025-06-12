@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Chatbot from './pages/Chatbot'
+import Admin from './pages/Admin'
 
 const App = () => {
   console.log('App component rendering');
@@ -20,6 +22,14 @@ const App = () => {
               <ProtectedRoute>
                 <Chatbot />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
             }
           />
           <Route path="/" element={<Navigate to="/login" replace />} />

@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import ChatMessage from '../components/ChatMessage';
 import SessionList from '../components/SessionList';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Chatbot = () => {
   const { user, logout } = useAuth();
@@ -114,13 +115,25 @@ const Chatbot = () => {
               <h1 className="text-xl font-semibold text-gray-900">SDP Chatbot</h1>
             </div>
             <div className="flex items-center">
-              <span className="text-gray-700 mr-4">Welcome, {user?.username}</span>
-              <button
-                onClick={logout}
-                className="btn-primary"
-              >
-                Logout
-              </button>
+              <div className="flex items-center space-x-6">
+                <span className="text-gray-600">Welcome, {user?.username}</span>
+                <div className="flex items-center space-x-3">
+                  {user?.user_type === 'admin' && (
+                    <Link
+                      to="/admin"
+                      className="btn-primary"
+                    >
+                      Admin
+                    </Link>
+                  )}
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-600 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
