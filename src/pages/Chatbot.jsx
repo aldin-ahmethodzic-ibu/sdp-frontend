@@ -54,6 +54,17 @@ const Chatbot = () => {
     })));
   };
 
+  const handleSessionDeleted = (deletedSessionId) => {
+    // Remove the deleted session from the list
+    setSessions(prevSessions => prevSessions.filter(session => session.session_id !== deletedSessionId));
+    
+    // If the deleted session was the current one, clear the chat
+    if (deletedSessionId === currentSessionId) {
+      setCurrentSessionId(null);
+      setMessages([]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -155,6 +166,7 @@ const Chatbot = () => {
               onSelectSession={handleSelectSession}
               currentSessionId={currentSessionId}
               sessions={sessions}
+              onSessionDeleted={handleSessionDeleted}
             />
           </div>
 
