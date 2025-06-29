@@ -1,21 +1,91 @@
 const ChatMessage = ({ message, isUser }) => {
-  // Split the message by newlines and map each line to a paragraph
-  const formattedMessage = message.split('\n').map((line, index) => {
-    // If the line is empty, add a line break
-    if (line.trim() === '') {
-      return <br key={index} />;
-    }
-    // If the line starts with a number and a dot (like "1.", "2.", etc.), add proper spacing
-    if (/^\d+\./.test(line)) {
+  // Function to parse markdown and convert to JSX
+  const parseMarkdown = (text) => {
+    // Split by lines to handle different block types
+    const lines = text.split('\n');
+    
+    return lines.map((line, lineIndex) => {
+      const trimmedLine = line.trim();
+      
+      // Empty line
+      if (trimmedLine === '') {
+        return <br key={lineIndex} />;
+      }
+      
+      // Bullet points
+      if (trimmedLine.startsWith('- ')) {
+        const content = trimmedLine.substring(2);
+        return (
+          <div key={lineIndex} className="flex items-start mb-1">
+            <span className="mr-2 text-gray-600">•</span>
+            <span>{parseInlineMarkdown(content)}</span>
+          </div>
+        );
+      }
+      
+      // Numbered lists
+      if (/^\d+\.\s/.test(trimmedLine)) {
+        const match = trimmedLine.match(/^(\d+)\.\s(.+)/);
+        if (match) {
+          const number = match[1];
+          const content = match[2];
+          return (
+            <div key={lineIndex} className="flex items-start mb-1">
+              <span className="mr-2 text-gray-600 font-medium">{number}.</span>
+              <span>{parseInlineMarkdown(content)}</span>
+            </div>
+          );
+        }
+      }
+      
+      // Regular paragraph
       return (
-        <p key={index} className="mb-2">
-          {line}
+        <p key={lineIndex} className="mb-2">
+          {parseInlineMarkdown(trimmedLine)}
         </p>
       );
+    });
+  };
+  
+  // Function to parse inline markdown (bold, italic, etc.)
+  const parseInlineMarkdown = (text) => {
+    // Handle bold text (**text**)
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    let result = text;
+    let elements = [];
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = boldRegex.exec(text)) !== null) {
+      // Add text before the bold part
+      if (match.index > lastIndex) {
+        elements.push(text.slice(lastIndex, match.index));
+      }
+      
+      // Add the bold text
+      elements.push(
+        <strong key={`bold-${match.index}`} className="font-semibold">
+          {match[1]}
+        </strong>
+      );
+      
+      lastIndex = match.index + match[0].length;
     }
-    // For regular lines
-    return <p key={index}>{line}</p>;
-  });
+    
+    // Add remaining text
+    if (lastIndex < text.length) {
+      elements.push(text.slice(lastIndex));
+    }
+    
+    // If no bold text found, return original text
+    if (elements.length === 0) {
+      return text;
+    }
+    
+    return elements;
+  };
+
+  const formattedMessage = parseMarkdown(message);
 
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
@@ -26,7 +96,7 @@ const ChatMessage = ({ message, isUser }) => {
             : 'bg-gray-100 text-gray-900'
         }`}
       >
-        <div className="text-sm whitespace-pre-wrap">
+        <div className="text-sm">
           {formattedMessage}
         </div>
       </div>
